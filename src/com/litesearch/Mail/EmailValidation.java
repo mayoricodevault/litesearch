@@ -54,13 +54,13 @@ public class EmailValidation {
 
                 res = hear( rdr );
                 if ( res != 220 ) throw new Exception( "Invalid header" );
-                say( wtr, "EHLO rgagnon.com" );
+                say( wtr, "EHLO rapidcall.com" );
 
                 res = hear( rdr );
                 if ( res != 250 ) throw new Exception( "Not ESMTP" );
 
                 // validate the sender address
-                say( wtr, "MAIL FROM: <tim@orbaker.com>" );
+                say( wtr, "MAIL FROM: <contact@rapidcall.com>" );
                 res = hear( rdr );
                 if ( res != 250 ) throw new Exception( "Sender rejected" );
 

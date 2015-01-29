@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.litesearch.Person.SearchResponse;
 import com.litesearch.Person.model.SerpInfo;
+import com.litesearch.crawler.CrawledSearch;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -21,15 +22,16 @@ import java.util.logging.Level;
  * Created by @mmayorivera on 1/28/15.
  */
 public class CustomSearch {
-    protected static Level logLevel = Level.OFF;
+    protected static Level logLevel = Level.ALL;
     private static ObjectMapper mapper = new ObjectMapper();
 
-    public static void search(String keyword,String targetName , Boolean getContent, int nb_depth) throws IOException, InterruptedException {
-        org.jsoup.nodes.Document HTMLdoc, targetDoc;
+    public static void search(CrawledSearch crawledQueries,String targetName , Boolean getContent, int nb_depth) throws IOException, InterruptedException {
+        org.jsoup.nodes.Document HTMLdoc;
         int depth = 0;
         int nb_results = 0;
         boolean found = false;
         long taskTimeMs =0;
+        String keyword = crawledQueries.getSeedQuery();
         SearchResponse SR = new SearchResponse();
         List<SerpInfo> serpInfoCol = new ArrayList<SerpInfo>();
         String targetFound = "?";
@@ -40,7 +42,7 @@ public class CustomSearch {
             while (depth < nb_depth && !found) {
                 try {
                     Thread.sleep(randInt(CSConstants.min_number_of_wait_times, CSConstants.max_number_of_wait_times) * 1000);
-                    Utils.info("Fetching a new page" + keyword);
+                    Utils.info("Fetching a new page " + keyword);
                     HTMLdoc = Jsoup.connect(
                             CSConstants.GOOGLE_QUERY_BASE_URL + CSConstants.PARAM_CS_QUERY + keyword + CSConstants.PARAM_CS_QUERY_PAGE + Integer.toString(depth * 10))
                             .userAgent(CSConstants.USER_AGENT)
@@ -59,12 +61,6 @@ public class CustomSearch {
                         }
                         if (linkref.contains(targetName)) {
                             targetFound = linkref;
-                            targetDoc = Jsoup.connect(targetFound)
-                                    .userAgent(CSConstants.USER_AGENT)
-                                    .ignoreHttpErrors(true)
-                                    .timeout(CSConstants.PARAM_CS_TIMEOUTMS)
-                                    .get();
-
                             found = true;
                         }
                         long serpTimeMs = System.currentTimeMillis() - startTimeMs;
@@ -109,6 +105,7 @@ public class CustomSearch {
                 e.printStackTrace();
             }
         }
+        crawledQueries.addCrawledQueries(keyword);
         Utils.info(MessageFormat.format("End OF Search {0}", taskTimeMs));
 
     }

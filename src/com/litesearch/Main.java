@@ -1,29 +1,31 @@
 package com.litesearch;
 
-import static com.litesearch.Mail.EmailValidation.isAddressValid;
+import com.litesearch.crawler.CrawledSearch;
+
+import static com.litesearch.threading.Crawler.initializeCrawling;
 
 public class Main {
 
-    public static CustomSearch serpSearch;
+    //public static CustomSearch serpSearch;
+
     public static void main(String[] args) throws Exception {
 	// write your code here
 
 
-
-        if(args.length == 0) {
-            System.out.println("Please include a Business email as the first parameter.");
-            return;
-        }
-
-        //if (true) return;
-
-        String keyword =  args[0];
-        String target_name = args[1];
-        if (!isAddressValid(keyword))
-            throw new Exception( "Address is not valid!" );
+        Utils.info("Miner... Time ");
 
 
-            serpSearch.search(keyword,target_name, true, 1 );
+        String target_name = "linkedin.com";
+
+        CrawledSearch crawledQueries = new CrawledSearch();
+        crawledQueries.setDepth(2);
+        crawledQueries.addListOfSearch("mmayorivera@gmail.com");
+        crawledQueries.addListOfSearch("hugo.loza@coderoad.com");
+        crawledQueries.setTargetQuery(target_name);
+        crawledQueries.setForceCreation(true);
+
+        initializeCrawling(crawledQueries.getListOfSearch().size(), crawledQueries, 1);
+            //serpSearch.search(keyword,target_name, true, 2 );
 
 
 

@@ -2,6 +2,8 @@ package com.litesearch.crawler;
 
 import java.util.*;
 
+import static com.litesearch.Mail.EmailValidation.isAddressValid;
+
 /**
  * Created by @mmayorivera on 1/28/15.
  */
@@ -9,47 +11,61 @@ public class CrawledSearch {
     private List<String> crawledSearch = new ArrayList<String>();
     private Queue<String> listOfSearch = new LinkedList<String>();
     private HashMap<String,String> content = new HashMap<String,String>() ;
-    private List<String> crawledDomains = new ArrayList<String>();
 
-    public List<String> getCrawledDomains() {
-        return crawledDomains;
+    private boolean forceCreation;
+    private String TargetQuery;
+    private int depth;
+
+    public boolean getForceCreation() {
+        return forceCreation;
     }
 
-    public void setCrawledDomains(List<String> crawledDomains) {
-        this.crawledDomains = crawledDomains;
+    public void setForceCreation(boolean forceCreation) {
+        this.forceCreation = forceCreation;
+    }
+
+    public int getDepth() {
+        return depth;
+    }
+
+    public void setDepth(int depth) {
+        this.depth = depth;
+    }
+
+    public String getTargetQuery() {
+        return TargetQuery;
+    }
+
+    public void setTargetQuery(String targetQuery) {
+            TargetQuery = targetQuery;
+    }
+
+    public void setCrawledQueries(List<String> crawledSearch) {
+        this.crawledSearch = crawledSearch;
+    }
+
+    public List<String> getCrawledQueries() {
+        return crawledSearch;
     }
 
     public HashMap<String, String> getContent() {
         return content;
     }
-
-    public void setContent(HashMap<String, String> content) {
-        this.content = content;
-    }
-
-    public synchronized void addContent(String key,String value){
-        this.content.put(key,value);
+    public void addCrawledQueries(String query){
+        this.crawledSearch.add(query);
     }
 
     public List<String> getCrawledSearch() {
         return crawledSearch;
     }
 
-    public String getTopUrl(){
+    public String getTopQuery(){
         return this.getListOfSearch().peek();
     }
 
-    public synchronized String getSeedUrl()
+    public synchronized String getSeedQuery()
     {
         return (this.getListOfSearch().remove());
-    }
-
-    public void addCrawledSites(String url){
-        this.crawledSearch.add(url);
-    }
-
-    public void setCrawledSites(ArrayList<String> crawledSites) {
-        this.crawledSearch = crawledSites;
     }
 
     public synchronized Queue<String> getListOfSearch() {
@@ -62,10 +78,11 @@ public class CrawledSearch {
 
     public synchronized void addListOfSearch(String query){
 
-        if(!(this.getCrawledSearch().contains(query)|| this.getListOfSearch().contains(query) || query.contains(".pdf"))){
-            this.listOfSearch.add(query.trim());
+        if (isAddressValid(query)) {
+            if(!(this.getCrawledQueries().contains(query) || this.getListOfSearch().contains(query))){
+                this.listOfSearch.add(query.trim());
+            }
         }
-
 
     }
 }
