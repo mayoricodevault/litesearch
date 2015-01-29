@@ -15,6 +15,20 @@ public class Utils {
         return new File("src/test/resources/" + fileName);
     }
 
+    public static boolean hasCached(String fileName, boolean forceDelete) throws IOException {
+        boolean found = false;
+
+        File f = new File(fileName);
+        if(f.exists()){
+            if (forceDelete) {
+                f.delete();
+            } else {
+                found = true;
+            }
+
+        }
+        return found;
+    }
 
     public static void log(Level l, String log) {
         if(l.intValue() >= CustomSearch.logLevel.intValue()) {

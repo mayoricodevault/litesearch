@@ -3,6 +3,15 @@ public class SerpInfo {
 	private String link;
     private String Title;
     private String ShorDesc;
+    private long timeMS;
+
+    public long getTimeMS() {
+        return timeMS;
+    }
+
+    public void setTimeMS(long timeMS) {
+        this.timeMS = timeMS;
+    }
 
     public String getTitle() {
         return Title;
@@ -34,6 +43,7 @@ public class SerpInfo {
         sb.append("link=").append(link);
         sb.append(", title='").append(Title).append('\'');
         sb.append(", desc='").append(ShorDesc).append('\'');
+        sb.append(", time='").append(timeMS).append('\'');
         sb.append('}');
         return sb.toString();
     }

@@ -22,7 +22,10 @@ public class Main {
         if (!isAddressValid(keyword))
             throw new Exception( "Address is not valid!" );
 
-        serpSearch.search(keyword,target_name, false, 1 );
+
+            serpSearch.search(keyword,target_name, true, 1 );
+
+
 
 
 

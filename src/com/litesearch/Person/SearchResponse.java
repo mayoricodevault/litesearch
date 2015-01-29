@@ -21,6 +21,16 @@ public class SearchResponse {
     private String requestId;
     private String message;
     private String targetLink;
+    private long timeMS;
+
+
+    public long getTimeMS() {
+        return timeMS;
+    }
+
+    public void setTimeMS(long timeMS) {
+        this.timeMS = timeMS;
+    }
 
     public void setTargetLink(String targetLink) {
         this.targetLink = targetLink;
@@ -71,27 +81,7 @@ public class SearchResponse {
         }
     }
 
-    /**
-     * Factory method to create a webhook response from json.
-     * @param json
-     * @return a new PersonResponse represented by the Json string
-     * @throws com.litesearch.CustomSearchException if there is a parsing/mapping error.
-     */
-    public static SearchResponse fromJson(String json) throws CustomSearchException {
-        //Properties not present in the POJO are ignored instead of throwing exceptions
-        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        //An empty string ("") is interpreted as null
-        mapper.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
-        try {
-            return mapper.readValue(json, SearchResponse.class);
-        } catch(JsonMappingException e) {
-            throw new CustomSearchException("Failed to convert person json to a response", e);
-        } catch(JsonParseException e) {
-            throw new CustomSearchException("Json is not valid format", e);
-        } catch(IOException e) {
-            throw new CustomSearchException("Unexpected exception when parsing json", e);
-        }
-    }
+
 
     @Override
     public String toString() {
