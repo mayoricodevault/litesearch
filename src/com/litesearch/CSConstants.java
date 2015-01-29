@@ -13,6 +13,9 @@ public class CSConstants {
     public static final int PARAM_CS_DEPTH = 1;
     public static final String LOG_PREFIX = "[cs4j]";
     public static final int PARAM_CS_TIMEOUTMS = 0;
+    public static final String SEARCH_CS_SELECTOR = "h3[class=r]";
+    public static final String SEARCH_CS_XSELECTOR = "span[class=st]";
+
 
 
 }

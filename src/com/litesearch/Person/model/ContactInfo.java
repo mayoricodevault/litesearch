@@ -1,13 +1,19 @@
 package com.litesearch.Person.model;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class ContactInfo {
 	private String fullName;
     private List<Website> websites = Collections.emptyList();
+    private List<String> emails = new ArrayList<String>();
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public void addEmail(String email){
+        this.emails.add(email);
     }
 
     public void setWebsites(List<Website> websites) {
@@ -22,6 +28,9 @@ public class ContactInfo {
         return websites;
     }
 
+    public List<String> getListEmails() {
+        return emails;
+    }
 
     public static class Website {
 

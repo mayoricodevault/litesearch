@@ -1,9 +1,6 @@
 package com.litesearch.threading;
 
-import com.litesearch.CustomSearch;
 import com.litesearch.crawler.CrawledSearch;
-
-import java.io.IOException;
 
 /**
  * Created by @mmayorivera on 1/28/15.
@@ -46,14 +43,14 @@ public class Crawler implements Runnable{
         try {
 
             while(crawledSites.getListOfSearch().size()<numberOfQueriesToCrawl) {
-                CustomSearch.search(crawledSites, false , 1);
+//                CustomSearch.search(crawledSites, false , 1);
             }
         } catch (RuntimeException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
         }
 
 

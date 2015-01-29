@@ -1,12 +1,13 @@
 package com.litesearch;
 
-import com.litesearch.crawler.CrawledSearch;
+import com.litesearch.Person.SearchResponse;
+import com.litesearch.Person.model.SerpInfo;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.util.Random;
+import java.util.*;
 import java.util.logging.Level;
 /**
  * Created by @mmayorivera on 1/28/15.
@@ -15,15 +16,18 @@ public class CustomSearch {
     protected static Level logLevel = Level.OFF;
 
 
-    public static void search(CrawledSearch crawledSites,String targetName , Boolean getContent, int nb_depth) throws IOException, InterruptedException {
-        String keyword = crawledSites.getSeedUrl();
+    public static void search(String keyword,String targetName , Boolean getContent, int nb_depth) throws IOException, InterruptedException {
         org.jsoup.nodes.Document HTMLdoc;
-
-
         int depth = 0;
         int nb_results = 0;
         boolean found = false;
-
+        int rankFound=0;
+        String targetFound;
+        long startTimeMs = System.currentTimeMillis( );
+        SearchResponse SR = new SearchResponse();
+        List<SerpInfo> serpInfoCol = new ArrayList<SerpInfo>();
+        SR.setRequestId(keyword);
+        System.setProperty("http.agent", "");
         while (depth < nb_depth && !found) {
             try {
                 Thread.sleep(randInt(CSConstants.min_number_of_wait_times, CSConstants.max_number_of_wait_times) * 1000);
@@ -34,8 +38,8 @@ public class CustomSearch {
                         .ignoreHttpErrors(true)
                         .timeout(CSConstants.PARAM_CS_TIMEOUTMS)
                         .get();
-                Elements serpsFull = HTMLdoc.select("span[class=st]");
-                Elements serps = HTMLdoc.select("h3[class=r]");
+                Elements serpsFull = HTMLdoc.select(CSConstants.SEARCH_CS_XSELECTOR);
+                Elements serps = HTMLdoc.select(CSConstants.SEARCH_CS_SELECTOR);
                 int nextSerp=0;
                 for (Element serp : serps) {
                     Element link = serp.getElementsByTag("a").first();
@@ -45,11 +49,18 @@ public class CustomSearch {
                         linkref = linkref.substring(7,linkref.indexOf("&"));
                     }
                     if (linkref.contains(targetName)){
-//                        my_rank=nb_results;
-//                        my_url=linkref;
+                        rankFound=nb_results;
+                        targetFound=linkref;
                         // TODO: Get another instace of jsoup to parase more
                         found=true;
                     }
+                    // Set Contact Info
+                    SerpInfo serpInfo = new SerpInfo();
+                    serpInfo.setLink(linkref);
+                    serpInfo.setShorDesc(serpsFull.get(nextSerp).text());
+                    serpInfo.setTitle(serp.text());
+                    serpInfoCol.add(serpInfo);
+                    // Set Social
                     System.out.println("Link ref: "+linkref);
                     System.out.println("Title: "+serp.text());
                     System.out.println("Desc: " + serpsFull.get(nextSerp).text());
@@ -64,6 +75,15 @@ public class CustomSearch {
                 e.printStackTrace();
             }
         }
+        long taskTimeMs  = System.currentTimeMillis( ) - startTimeMs;
+        System.out.println(taskTimeMs);
+        if (nb_results == 0){
+            System.out.println("Warning captcha");
+        }else {
+            System.out.println("Number of links : "+nb_results);
+        }
+        SR.setSerp((List<SerpInfo>) serpInfoCol);
+
     }
 
 
