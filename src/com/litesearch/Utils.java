@@ -12,7 +12,7 @@ public class Utils {
 
 
     public static File loadFile(String fileName) throws IOException {
-        return new File("src/test/resources/" + fileName);
+        return new File("./results" + fileName);
     }
 
     public static boolean hasCached(String fileName, boolean forceDelete) throws IOException {
