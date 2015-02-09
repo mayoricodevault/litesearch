@@ -32,6 +32,8 @@ public class CustomSearch {
         boolean found = false;
         long taskTimeMs =0;
         String keyword = crawledQueries.getSeedQuery();
+        String searchEndPoint;
+        String targetSite;
         SearchResponse SR = new SearchResponse();
         List<SerpInfo> serpInfoCol = new ArrayList<SerpInfo>();
         String targetFound = "?";
@@ -43,8 +45,10 @@ public class CustomSearch {
                 try {
                     Thread.sleep(randInt(CSConstants.min_number_of_wait_times, CSConstants.max_number_of_wait_times) * 1000);
                     Utils.info("Fetching a new page " + keyword);
-                    HTMLdoc = Jsoup.connect(
-                            CSConstants.GOOGLE_QUERY_BASE_URL + CSConstants.PARAM_CS_QUERY + keyword + CSConstants.PARAM_CS_QUERY_PAGE + Integer.toString(depth * 10))
+                    targetSite = targetName!=""?"site:"+targetName+"+":""+keyword;
+                    searchEndPoint = CSConstants.GOOGLE_QUERY_BASE_URL + CSConstants.PARAM_CS_QUERY + targetSite + keyword + CSConstants.PARAM_CS_QUERY_PAGE + Integer.toString(depth * 10);
+                    Utils.info(searchEndPoint);
+                    HTMLdoc = Jsoup.connect(searchEndPoint)
                             .userAgent(CSConstants.USER_AGENT)
                             .ignoreHttpErrors(true)
                             .timeout(CSConstants.PARAM_CS_TIMEOUTMS)
@@ -64,6 +68,7 @@ public class CustomSearch {
                             found = true;
                         }
                         long serpTimeMs = System.currentTimeMillis() - startTimeMs;
+                        Utils.info(linkref);
 
                         // Set Contact Info
                         SerpInfo serpInfo = new SerpInfo();

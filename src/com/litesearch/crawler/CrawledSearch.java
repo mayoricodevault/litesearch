@@ -9,6 +9,7 @@ import static com.litesearch.Mail.EmailValidation.isAddressValid;
  */
 public class CrawledSearch {
     private List<String> crawledSearch = new ArrayList<String>();
+    private List<String> targetList = new ArrayList<String>();
     private Queue<String> listOfSearch = new LinkedList<String>();
     private HashMap<String,String> content = new HashMap<String,String>() ;
 
@@ -84,5 +85,10 @@ public class CrawledSearch {
             }
         }
 
+    }
+    public synchronized void addTarget(String query){
+
+                this.targetList.add(query.trim());
+           
     }
 }
