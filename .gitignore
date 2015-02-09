@@ -33,3 +33,6 @@ hs_err_pid*
 
 
 results
+out
+.idea
+atlassian-ide-plugin.xml
