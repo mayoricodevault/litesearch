@@ -3,12 +3,19 @@ public class SerpInfo {
 	private String link;
     private String Title;
     private String ShorDesc;
+    private String Vcard;
     private long timeMS;
 
     public long getTimeMS() {
         return timeMS;
     }
+    public String getVcard() {
+        return Vcard;
+    }
 
+    public void setVcard(String vcard) {
+        Vcard = vcard;
+    }
     public void setTimeMS(long timeMS) {
         this.timeMS = timeMS;
     }

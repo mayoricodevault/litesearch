@@ -14,15 +14,16 @@ public class Main {
         Utils.info("Miner... Time ");
 
 
-        String target_name = "twitter.com";
+        String target_name = "vcard";
 
         CrawledSearch crawledQueries = new CrawledSearch();
-        crawledQueries.setDepth(2);
+        crawledQueries.setDepth(1);
         crawledQueries.addListOfSearch("augusto.flores@coderoad.com");
-        crawledQueries.addListOfSearch("ignacio.ballivian@coderoad.com");
-        crawledQueries.addTarget("linkedin.com");
-        crawledQueries.addTarget("twitter.com");
-        crawledQueries.setTargetQuery(target_name);
+        crawledQueries.setTargetType(CSConstants.CONTEXT_GENERAL);
+ //       crawledQueries.addListOfSearch("ignacio.ballivian@coderoad.com");
+        crawledQueries.addTargetList("linkedin.com");
+        crawledQueries.addTargetList("twitter.com");
+        crawledQueries.setTargetQuery(target_name);  // Vtarget
         crawledQueries.setForceCreation(true);
 
         initializeCrawling(crawledQueries.getListOfSearch().size(), crawledQueries, 1);

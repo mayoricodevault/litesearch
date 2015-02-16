@@ -26,12 +26,11 @@ public class CustomSearch {
     private static ObjectMapper mapper = new ObjectMapper();
 
     public static void search(CrawledSearch crawledQueries,String targetName , Boolean getContent, int nb_depth) throws IOException, InterruptedException {
-        org.jsoup.nodes.Document HTMLdoc;
-        int depth = 0;
+        org.jsoup.nodes.Document HTMLdoc, crawledSite;
         int nb_results = 0;
-        boolean found = false;
+        
         long taskTimeMs =0;
-        String keyword = crawledQueries.getSeedQuery();
+        String keyword = crawledQueries.getSeedQuery();  // Get the email looking
         String searchEndPoint;
         String targetSite;
         SearchResponse SR = new SearchResponse();
@@ -41,58 +40,75 @@ public class CustomSearch {
         if (!Utils.hasCached(CSConstants.DIR_QUERY_BASE_FILE+keyword+".json", getContent)) {
             SR.setRequestId(keyword);
             System.setProperty("http.agent", "");
-            while (depth < nb_depth && !found) {
-                try {
-                    Thread.sleep(randInt(CSConstants.min_number_of_wait_times, CSConstants.max_number_of_wait_times) * 1000);
-                    Utils.info("Fetching a new page " + keyword);
-                    targetSite = targetName!=""?"site:"+targetName+"+":""+keyword;
-                    searchEndPoint = CSConstants.GOOGLE_QUERY_BASE_URL + CSConstants.PARAM_CS_QUERY + targetSite + keyword + CSConstants.PARAM_CS_QUERY_PAGE + Integer.toString(depth * 10);
-                    Utils.info(searchEndPoint);
-                    HTMLdoc = Jsoup.connect(searchEndPoint)
-                            .userAgent(CSConstants.USER_AGENT)
-                            .ignoreHttpErrors(true)
-                            .timeout(CSConstants.PARAM_CS_TIMEOUTMS)
-                            .get();
-                    Elements serpsFull = HTMLdoc.select(CSConstants.SEARCH_CS_XSELECTOR);
-                    Elements serps = HTMLdoc.select(CSConstants.SEARCH_CS_SELECTOR);
-                    int nextSerp = 0;
-                    for (Element serp : serps) {
-                        Element link = serp.getElementsByTag("a").first();
-                        String linkref = link.attr("href");
-                        if (linkref.startsWith("/url?q=")) {
-                            nb_results++;
-                            linkref = linkref.substring(7, linkref.indexOf("&"));
-                        }
-                        if (linkref.contains(targetName)) {
+            for(Object tList : crawledQueries.getTargetList()) {
+                String targetDomain = (String) tList;
+                int depth = 0;
+                int localResults =0;
+                Utils.verbose("--> "+targetDomain);
+                // Get the target domain
+                while (depth < nb_depth) {
+                    try {
+                        Thread.sleep(randInt(CSConstants.min_number_of_wait_times, CSConstants.max_number_of_wait_times) * 1000);
+                        Utils.info("Fetching a new page " + keyword);
+                        targetSite = targetName != "" ? "site:" + targetDomain + "+" : "" + keyword;
+                        searchEndPoint = CSConstants.GOOGLE_QUERY_BASE_URL + CSConstants.PARAM_CS_QUERY + targetSite + keyword + CSConstants.PARAM_CS_QUERY_PAGE + Integer.toString(depth * 10);
+                        Utils.info(searchEndPoint);
+                        HTMLdoc = Jsoup.connect(searchEndPoint)
+                                .userAgent(CSConstants.USER_AGENT)
+                                .ignoreHttpErrors(true)
+                                .timeout(CSConstants.PARAM_CS_TIMEOUTMS)
+                                .get();
+                        Elements serpsFull = HTMLdoc.select(CSConstants.SEARCH_CS_XSELECTOR);
+                        Elements serps = HTMLdoc.select(CSConstants.SEARCH_CS_SELECTOR);
+                        int nextSerp = 0;
+                        for (Element serp : serps) {
+                            SerpInfo serpInfo = new SerpInfo();
+                            Element link = serp.getElementsByTag("a").first();
+                            String linkref = link.attr("href");
+                            Elements links = null;
+                            if (linkref.startsWith("/url?q=")) {
+                                nb_results++;
+                                localResults++;
+                                
+                                linkref = linkref.substring(7, linkref.indexOf("&"));
+                                if (linkref.contains("linkedin.com/in")) {
+                                    try {
+                                        crawledSite = Jsoup.connect(linkref).get();
+                                        links = crawledSite.select("div[class=profile-card vcard]");
+                                    } catch (Exception e) {
+                                        links = null;
+                                    } finally {
+                                        if (links != null) {
+                                            serpInfo.setVcard(links.outerHtml());
+                                        }
+                                    }
+                                }
+                            }
+                            long serpTimeMs = System.currentTimeMillis() - startTimeMs;
+                           // if (linkref.contains(targetDomain)) {
+                                // Set Contact Info
+                            serpInfo.setLink(linkref);
+                            serpInfo.setShorDesc(serpsFull.get(nextSerp).text());
+                            serpInfo.setTitle(serp.text());
+                            serpInfo.setTimeMS(serpTimeMs);
+                            serpInfoCol.add(serpInfo);
                             targetFound = linkref;
-                            found = true;
+                            Utils.info(linkref);
+                            // Set Social
+                            nextSerp++;
                         }
-                        long serpTimeMs = System.currentTimeMillis() - startTimeMs;
-                        Utils.info(linkref);
-
-                        // Set Contact Info
-                        SerpInfo serpInfo = new SerpInfo();
-                        serpInfo.setLink(linkref);
-                        serpInfo.setShorDesc(serpsFull.get(nextSerp).text());
-                        serpInfo.setTitle(serp.text());
-                        serpInfo.setTimeMS(serpTimeMs);
-                        serpInfoCol.add(serpInfo);
-                        // Set Social
-                        nextSerp++;
+                        depth++;
+                    } catch (InterruptedException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
                     }
-                    if (nb_results == 0) {
-                        Utils.verbose("Warning captcha");
-                    }
-                    depth++;
-                } catch (InterruptedException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
                 }
+                Utils.verbose("--> "+targetDomain +" ("+localResults + ")  <-- END");
             }
             taskTimeMs = System.currentTimeMillis() - startTimeMs;
-            if (found) {
-                SR.setTargetLink(targetFound);
-            }
+            //if (found) {
+              //  SR.setTargetLink(targetFound);
+            //}
             SR.setTimeMS(taskTimeMs);
             SR.setMessage("Number of links : " + nb_results);
             SR.setSerp((List<SerpInfo>) serpInfoCol);

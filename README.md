@@ -1,8 +1,8 @@
-# litesearch
+# LiteSearch
+
 Lit Search - Google Based
 
 This package will search for results searching in google.
-
 
 Based on Java
 

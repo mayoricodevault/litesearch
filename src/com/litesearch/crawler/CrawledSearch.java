@@ -1,5 +1,7 @@
 package com.litesearch.crawler;
 
+import com.litesearch.CSConstants;
+
 import java.util.*;
 
 import static com.litesearch.Mail.EmailValidation.isAddressValid;
@@ -9,13 +11,22 @@ import static com.litesearch.Mail.EmailValidation.isAddressValid;
  */
 public class CrawledSearch {
     private List<String> crawledSearch = new ArrayList<String>();
-    private List<String> targetList = new ArrayList<String>();
+    private Queue<String> targetList = new LinkedList<String>();
     private Queue<String> listOfSearch = new LinkedList<String>();
     private HashMap<String,String> content = new HashMap<String,String>() ;
 
     private boolean forceCreation;
     private String TargetQuery;
+    private String TargetType = CSConstants.CONTEXT_GENERAL;
     private int depth;
+    
+    public String getTargetType() {
+        return TargetType;
+    }
+
+    public void setTargetType(String targetType) {
+        TargetType = targetType;
+    }
 
     public boolean getForceCreation() {
         return forceCreation;
@@ -73,6 +84,22 @@ public class CrawledSearch {
         return listOfSearch;
     }
 
+    public synchronized String getSeedTarget()
+    {
+        return (this.getTargetList().remove());
+    }
+    
+    public synchronized Queue<String> getTargetList() {
+        return targetList;
+    }
+
+    public synchronized Queue<String> getListOfTargets() {
+        return targetList;
+    }
+
+    public void setListOfTargets(Queue<String> listOfTargets) {
+        this.targetList = listOfTargets;
+    }
     public void setListOfQueries(Queue<String> listOfQueries) {
         this.listOfSearch = listOfQueries;
     }
@@ -86,9 +113,11 @@ public class CrawledSearch {
         }
 
     }
-    public synchronized void addTarget(String query){
+    public synchronized void addTargetList(String query){
 
-                this.targetList.add(query.trim());
+        if(!this.getTargetList().contains(query)) {
+            this.targetList.add(query.trim());
+        }
            
     }
 }
