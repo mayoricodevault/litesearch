@@ -11,19 +11,16 @@ public class Main {
     public static void main(String[] args) throws Exception {
 
 
-        Utils.info("Miner... Time ");
-
-
-        String target_name = "vcard";
-
+        Utils.info("Miner... Time!!!!!");
         CrawledSearch crawledQueries = new CrawledSearch();
         crawledQueries.setDepth(1);
-        crawledQueries.addListOfSearch("augusto.flores@coderoad.com");
-        crawledQueries.setTargetType(CSConstants.CONTEXT_GENERAL);
+        crawledQueries.setTargetType(CSConstants.DOMAIN_CONTEXT);
+       // crawledQueries.addListOfSearch("augusto.flores@coderoad.com");
+        crawledQueries.addListOfSearch("Miguel Mayori");
+        
  //       crawledQueries.addListOfSearch("ignacio.ballivian@coderoad.com");
-        crawledQueries.addTargetList("linkedin.com");
-        crawledQueries.addTargetList("twitter.com");
-        crawledQueries.setTargetQuery(target_name);  // Vtarget
+        crawledQueries.addTargetList("linkedin.com", "div[class=profile-card vcard]");
+        crawledQueries.addTargetList("twitter.com", "div[class=ProfileHeaderCard]");
         crawledQueries.setForceCreation(true);
 
         initializeCrawling(crawledQueries.getListOfSearch().size(), crawledQueries, 1);

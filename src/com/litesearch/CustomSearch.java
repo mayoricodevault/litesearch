@@ -7,117 +7,72 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.litesearch.Person.SearchResponse;
 import com.litesearch.Person.model.SerpInfo;
 import com.litesearch.crawler.CrawledSearch;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
+import com.litesearch.crawler.model.TargetInfo;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.logging.Level;
 /**
  * Created by @mmayorivera on 1/28/15.
  */
-public class CustomSearch {
+public class CustomSearch extends HTMLParser{
     protected static Level logLevel = Level.ALL;
     private static ObjectMapper mapper = new ObjectMapper();
 
-    public static void search(CrawledSearch crawledQueries,String targetName , Boolean getContent, int nb_depth) throws IOException, InterruptedException {
-        org.jsoup.nodes.Document HTMLdoc, crawledSite;
+    public static void search(CrawledSearch crawledQueries,  Boolean getContent) throws IOException, InterruptedException, CustomSearchException {
         int nb_results = 0;
-        
         long taskTimeMs =0;
-        String keyword = crawledQueries.getSeedQuery();  // Get the email looking
-        String searchEndPoint;
-        String targetSite;
+        String keyword = crawledQueries.getSeedQuery(), searchEndPoint, targetSearch, targetFound = "?";  // Get the keyword searching
         SearchResponse SR = new SearchResponse();
-        List<SerpInfo> serpInfoCol = new ArrayList<SerpInfo>();
-        String targetFound = "?";
+        List<SerpInfo> serpInfoCol;
         long startTimeMs = System.currentTimeMillis( );
+        Utils.info("BEGIN Fetching new Subject " + keyword  + "("+startTimeMs+")");
+        if (crawledQueries.getListOfSearch().size()<0) {
+            throw new CustomSearchException("Nothing to Search So Far"+crawledQueries.getListOfSearch().size());
+        }
+        if (crawledQueries.getListOfTargets().isEmpty()) {
+            crawledQueries.setTargetType(CSConstants.GENERAL_CONTEXT);
+        } 
         if (!Utils.hasCached(CSConstants.DIR_QUERY_BASE_FILE+keyword+".json", getContent)) {
             SR.setRequestId(keyword);
             System.setProperty("http.agent", "");
-            for(Object tList : crawledQueries.getTargetList()) {
-                String targetDomain = (String) tList;
-                int depth = 0;
-                int localResults =0;
-                Utils.verbose("--> "+targetDomain);
-                // Get the target domain
-                while (depth < nb_depth) {
-                    try {
-                        Thread.sleep(randInt(CSConstants.min_number_of_wait_times, CSConstants.max_number_of_wait_times) * 1000);
-                        Utils.info("Fetching a new page " + keyword);
-                        targetSite = targetName != "" ? "site:" + targetDomain + "+" : "" + keyword;
-                        searchEndPoint = CSConstants.GOOGLE_QUERY_BASE_URL + CSConstants.PARAM_CS_QUERY + targetSite + keyword + CSConstants.PARAM_CS_QUERY_PAGE + Integer.toString(depth * 10);
-                        Utils.info(searchEndPoint);
-                        HTMLdoc = Jsoup.connect(searchEndPoint)
-                                .userAgent(CSConstants.USER_AGENT)
-                                .ignoreHttpErrors(true)
-                                .timeout(CSConstants.PARAM_CS_TIMEOUTMS)
-                                .get();
-                        Elements serpsFull = HTMLdoc.select(CSConstants.SEARCH_CS_XSELECTOR);
-                        Elements serps = HTMLdoc.select(CSConstants.SEARCH_CS_SELECTOR);
-                        int nextSerp = 0;
-                        for (Element serp : serps) {
-                            SerpInfo serpInfo = new SerpInfo();
-                            Element link = serp.getElementsByTag("a").first();
-                            String linkref = link.attr("href");
-                            Elements links = null;
-                            if (linkref.startsWith("/url?q=")) {
-                                nb_results++;
-                                localResults++;
-                                
-                                linkref = linkref.substring(7, linkref.indexOf("&"));
-                                if (linkref.contains("linkedin.com/in")) {
-                                    try {
-                                        crawledSite = Jsoup.connect(linkref).get();
-                                        links = crawledSite.select("div[class=profile-card vcard]");
-                                    } catch (Exception e) {
-                                        links = null;
-                                    } finally {
-                                        if (links != null) {
-                                            serpInfo.setVcard(links.outerHtml());
-                                        }
-                                    }
-                                }
-                            }
-                            long serpTimeMs = System.currentTimeMillis() - startTimeMs;
-                           // if (linkref.contains(targetDomain)) {
-                                // Set Contact Info
-                            serpInfo.setLink(linkref);
-                            serpInfo.setShorDesc(serpsFull.get(nextSerp).text());
-                            serpInfo.setTitle(serp.text());
-                            serpInfo.setTimeMS(serpTimeMs);
-                            serpInfoCol.add(serpInfo);
-                            targetFound = linkref;
-                            Utils.info(linkref);
-                            // Set Social
-                            nextSerp++;
-                        }
+            if (crawledQueries.getTargetType().matches(CSConstants.DOMAIN_CONTEXT)) {
+                for(TargetInfo tList : crawledQueries.getTargetList()) {
+                    String targetDomain = tList.getTargetDomain();
+                    int depth = 0;
+                    targetSearch = "site:" + targetDomain + "+" + keyword;
+                    searchEndPoint = CSConstants.GOOGLE_QUERY_BASE_URL + CSConstants.PARAM_CS_QUERY + targetSearch + CSConstants.PARAM_CS_QUERY_PAGE + Integer.toString(depth * 10);
+                    while (depth < crawledQueries.getDepth()) {
+                        serpInfoCol = crawlSerps(crawledQueries, tList, searchEndPoint);
+                        if (serpInfoCol.size()>0) {
+                            SR.setSerp(serpInfoCol);
+                        }    
                         depth++;
-                    } catch (InterruptedException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
                     }
                 }
-                Utils.verbose("--> "+targetDomain +" ("+localResults + ")  <-- END");
+            } else {
+                int depth = 0;
+                targetSearch = keyword;
+                searchEndPoint = CSConstants.GOOGLE_QUERY_BASE_URL + CSConstants.PARAM_CS_QUERY + targetSearch + CSConstants.PARAM_CS_QUERY_PAGE + Integer.toString(depth * 10);
+                while (depth < crawledQueries.getDepth()) {
+                    serpInfoCol = getSerps(crawledQueries, searchEndPoint);
+                    if (serpInfoCol.size()>0) {
+                        SR.setSerp(serpInfoCol);
+                    }
+                    depth++;
+                }
             }
             taskTimeMs = System.currentTimeMillis() - startTimeMs;
-            //if (found) {
-              //  SR.setTargetLink(targetFound);
-            //}
             SR.setTimeMS(taskTimeMs);
-            SR.setMessage("Number of links : " + nb_results);
-            SR.setSerp((List<SerpInfo>) serpInfoCol);
+            SR.setMessage(" : " + SR.getSerpInfoList().size());
             try {
-                Utils.info("Fetching cache for " + keyword);
                 SR.toJson(new File(CSConstants.DIR_QUERY_BASE_FILE + keyword + ".json"));
             } catch (CustomSearchException e) {
                 e.printStackTrace();
             }
+            
         } else {
             try {
                 taskTimeMs = System.currentTimeMillis() - startTimeMs;
@@ -127,7 +82,7 @@ public class CustomSearch {
             }
         }
         crawledQueries.addCrawledQueries(keyword);
-        Utils.info(MessageFormat.format("End OF Search {0}", taskTimeMs));
+        Utils.info(MessageFormat.format("End OF Search subject {0} ({1})", keyword, taskTimeMs));
 
     }
 
@@ -161,17 +116,7 @@ public class CustomSearch {
     public static void setLogLevel(Level log) {
         logLevel = log;
     }
-
-    public static int randInt(int min, int max) {
-        // NOTE: Usually this should be a field rather than a method
-        // variable so that it is not re-seeded every call.
-        Random rand = new Random();
-        // nextInt is normally exclusive of the top value,
-        // so add 1 to make it inclusive
-        int randomNum = rand.nextInt((max - min) + 1) + min;
-        return randomNum;
-    }
-
+    
 
 
 }

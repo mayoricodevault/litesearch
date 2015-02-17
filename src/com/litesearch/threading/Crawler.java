@@ -1,6 +1,7 @@
 package com.litesearch.threading;
 
 import com.litesearch.CustomSearch;
+import com.litesearch.CustomSearchException;
 import com.litesearch.crawler.CrawledSearch;
 
 import java.io.IOException;
@@ -42,11 +43,13 @@ public class Crawler implements Runnable{
         try {
 
             while(crawledQueries.getCrawledQueries().size()<numberOfQueriesToCrawl) {
-                CustomSearch.search(crawledQueries,  crawledQueries.getTargetQuery(), crawledQueries.getForceCreation() , crawledQueries.getDepth());
+                CustomSearch.search(crawledQueries,  crawledQueries.getForceCreation());
             }
         } catch (RuntimeException e) {
             e.printStackTrace();
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (CustomSearchException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();

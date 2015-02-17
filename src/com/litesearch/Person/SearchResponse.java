@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.litesearch.CustomSearchException;
-import com.litesearch.Person.model.*;
+import com.litesearch.Person.model.SerpInfo;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,8 +36,15 @@ public class SearchResponse {
         this.targetLink = targetLink;
     }
 
+
     public void setSerp(List<SerpInfo> serpList) {
-        this.serpInfoList = serpList;
+        if (this.serpInfoList.size()>0) {
+            for(SerpInfo serp : serpList) {
+                this.serpInfoList.add(serp);
+            }
+        } else {
+            this.serpInfoList = serpList;
+        } 
     }
 
     public void setRequestId(String requestId) {
