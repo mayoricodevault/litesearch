@@ -4,12 +4,16 @@ package com.litesearch;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 /**
  * Created by @mmayorivera on 1/28/15.
  */
 public class Utils {
 
+
+
+    
 
     public static File loadFile(String fileName) throws IOException {
         return new File("./results" + fileName);

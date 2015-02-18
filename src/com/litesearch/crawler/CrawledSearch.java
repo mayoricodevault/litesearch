@@ -4,6 +4,9 @@ import com.litesearch.CSConstants;
 import com.litesearch.crawler.model.TargetInfo;
 
 import java.util.*;
+import java.util.regex.Pattern;
+
+import static com.litesearch.Mail.EmailValidation.isAddressValid;
 
 /**
  * Created by @mmayorivera on 1/28/15.
@@ -18,7 +21,11 @@ public class CrawledSearch {
     private boolean forceCreation;
     private String TargetType = CSConstants.GENERAL_CONTEXT;
     private int depth;
-    
+
+    private static final Pattern isvalidEmail = Pattern.compile(
+            "^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$"
+    );
+
     public String getTargetType() {
         return TargetType;
     }
@@ -97,10 +104,16 @@ public class CrawledSearch {
 
     public synchronized void addListOfSearch(String query){
 
-//        if (isAddressValid(query)) {
-            if(!(this.getCrawledQueries().contains(query) || this.getListOfSearch().contains(query))){
+        if (isvalidEmail.matcher(query).matches())  {
+            if (isAddressValid(query)) {
+                if(!(this.getCrawledQueries().contains(query) || this.getListOfSearch().contains(query))){
+                    this.listOfSearch.add(query.trim());
+                }
+            }
+        } else {
+            if (!(this.getCrawledQueries().contains(query) || this.getListOfSearch().contains(query))) {
                 this.listOfSearch.add(query.trim());
-//            }
+            }
         }
 
     }
